@@ -3,5 +3,17 @@
     "API/generate.js": {
       "maxDuration": 60
     }
-  }
+  },
+  "builds": [
+    {
+      "src": "API/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/generate",
+      "destination": "/API/generate.js"
+    }
+  ]
 }
