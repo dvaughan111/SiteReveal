@@ -1,16 +1,18 @@
 {
-  "functions": {
-    "API/generate.js": {
-      "maxDuration": 60
-    }
-  },
   "builds": [
     {
-      "src": "API/*.js",
-      "use": "@vercel/node"
+      "src": "API/generate.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60
+      }
     }
   ],
   "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    },
     {
       "source": "/api/generate",
       "destination": "/API/generate.js"
