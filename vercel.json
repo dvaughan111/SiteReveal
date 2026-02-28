@@ -1,7 +1,7 @@
 {
   "builds": [
     {
-      "src": "API/generate.js",
+      "src": "api/generate.js",
       "use": "@vercel/node",
       "config": {
         "maxDuration": 60
@@ -15,7 +15,7 @@
   "rewrites": [
     {
       "source": "/api/generate",
-      "destination": "/API/generate.js"
+      "destination": "/api/generate.js"
     },
     {
       "source": "/(.*)",
