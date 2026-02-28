@@ -522,7 +522,7 @@
     <div class="url-input-wrap">
       <div class="url-prefix">https://</div>
       <input type="text" id="urlInput" placeholder="yourcompany.com" autocomplete="off">
-      <button id="analyzeBtn" onclick="startAnalysis()">Analyze & Redesign →</button>
+      <button id="analyzeBtn">Analyze & Redesign →</button>
     </div>
   </div>
 </section>
@@ -552,9 +552,9 @@
   <div class="results-header">
     <h2>REDESIGN <span>COMPLETE</span></h2>
     <div class="action-row">
-      <button class="btn-secondary" onclick="downloadHTML()">⬇ Download HTML</button>
-      <button class="btn-secondary" onclick="resetTool()">← New Analysis</button>
-      <button class="btn-primary" onclick="copyHTML()">Copy Generated HTML</button>
+      <button class="btn-secondary" id="downloadBtn">⬇ Download HTML</button>
+      <button class="btn-secondary" id="resetBtn">← New Analysis</button>
+      <button class="btn-primary" id="copyBtn">Copy Generated HTML</button>
     </div>
   </div>
 
@@ -577,7 +577,7 @@
         <div class="bc-dot" style="background:#27c93f"></div>
       </div>
       <div class="frame-body">
-        <iframe id="beforeFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+        <iframe id="beforeFrame"></iframe>
         <div class="frame-blocked" id="frameBlocked">
           <div class="big-icon">🔒</div>
           <p>This site blocks iframe embedding. Open it directly to compare.</p>
@@ -622,14 +622,20 @@
 let generatedHTML = '';
 let currentUrl = '';
 
-// ── CORS PROXY FETCH ───────────────────────────────────────────
+// ── SERVER-SIDE FETCH (our own Vercel function — no CORS issues) ──
 async function fetchSite(url) {
-  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-  const res = await fetch(proxyUrl);
-  if (!res.ok) throw new Error(`Could not reach the site (proxy error ${res.status})`);
+  const res = await fetch('/api/fetch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Could not fetch site (${res.status})`);
+  }
   const data = await res.json();
-  if (!data.contents) throw new Error('Site returned empty content — it may block external requests.');
-  return data.contents;
+  if (!data.html) throw new Error('Site returned empty content.');
+  return data.html;
 }
 
 // ── EXTRACT SITE DATA ──────────────────────────────────────────
@@ -745,7 +751,7 @@ async function startAnalysis() {
 async function generateHomepage(url, data) {
   const prompt = buildPrompt(url, data);
 
-  const res = await fetch('/API/generate', {
+  const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt })
@@ -990,6 +996,10 @@ function copyHTML() {
 document.getElementById('urlInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') startAnalysis();
 });
+document.getElementById('analyzeBtn').addEventListener('click', startAnalysis);
+document.getElementById('downloadBtn').addEventListener('click', downloadHTML);
+document.getElementById('resetBtn').addEventListener('click', resetTool);
+document.getElementById('copyBtn').addEventListener('click', copyHTML);
 </script>
 
 </body>
